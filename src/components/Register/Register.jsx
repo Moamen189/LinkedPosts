@@ -1,15 +1,46 @@
-import React from 'react'
-// https://linked-posts.routemisr.com/users/signup
-// {
-//     "name": "Ahmed Bahnasy",
-//     "email":"bahnasy2040101@gmail.com",
-//     "password":"Bahnasy@123",
-//     "rePassword":"Bahnasy@123",
-//     "dateOfBirth":"7-10-1994",
-//     "gender":"male"
-// }
+import React, { useState } from 'react'
+import axios from 'axios'
 
 function Register() {
+  const [user, setUser] = useState({
+    name: '',
+    email: '',
+    password: '',
+    rePassword: '',
+    dateOfBirth: '',
+    gender: ''
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(null)
+ // e => setUser({ ...user, [e.target.name]: e.target.value })
+ // e => Event Info name and value 
+  function handleChange(e) {
+    setUser({ ...user, [e.target.name]: e.target.value })
+  }
+
+  async function handleRegister(e) {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const { data } = await axios.post(
+        'https://linked-posts.routemisr.com/users/signup',
+        user
+      )
+      setSuccess(data.message || 'Account created successfully!')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const inputClass =
+    'w-full bg-white/20 border border-white/40 text-white placeholder:text-white/50 rounded-xl px-4 py-3 text-sm outline-none focus:border-white/80 focus:bg-white/25 transition'
+
   return (
     <div className="flex items-center justify-center min-h-screen px-4">
       {/* Glass card */}
@@ -25,7 +56,19 @@ function Register() {
           </p>
         </div>
 
-        <form className="space-y-5">
+        {/* API Feedback */}
+        {error && (
+          <div className="mb-5 bg-red-500/20 border border-red-400/50 text-red-100 text-sm rounded-xl px-4 py-3">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="mb-5 bg-green-500/20 border border-green-400/50 text-green-100 text-sm rounded-xl px-4 py-3">
+            {success}
+          </div>
+        )}
+
+        <form onSubmit={handleRegister} className="space-y-5">
 
           {/* Name */}
           <div className="flex flex-col gap-1">
@@ -36,8 +79,11 @@ function Register() {
               type="text"
               id="name"
               name="name"
+              value={user.name}
+              onChange={handleChange}
               placeholder="Enter your full name"
-              className="w-full bg-white/20 border border-white/40 text-white placeholder:text-white/50 rounded-xl px-4 py-3 text-sm outline-none focus:border-white/80 focus:bg-white/25 transition"
+              className={inputClass}
+              required
             />
           </div>
 
@@ -50,8 +96,11 @@ function Register() {
               type="email"
               id="email"
               name="email"
+              value={user.email}
+              onChange={handleChange}
               placeholder="Enter your email"
-              className="w-full bg-white/20 border border-white/40 text-white placeholder:text-white/50 rounded-xl px-4 py-3 text-sm outline-none focus:border-white/80 focus:bg-white/25 transition"
+              className={inputClass}
+              required
             />
           </div>
 
@@ -65,8 +114,11 @@ function Register() {
                 type="password"
                 id="password"
                 name="password"
+                value={user.password}
+                onChange={handleChange}
                 placeholder="••••••••"
-                className="w-full bg-white/20 border border-white/40 text-white placeholder:text-white/50 rounded-xl px-4 py-3 text-sm outline-none focus:border-white/80 focus:bg-white/25 transition"
+                className={inputClass}
+                required
               />
             </div>
 
@@ -78,8 +130,11 @@ function Register() {
                 type="password"
                 id="rePassword"
                 name="rePassword"
+                value={user.rePassword}
+                onChange={handleChange}
                 placeholder="••••••••"
-                className="w-full bg-white/20 border border-white/40 text-white placeholder:text-white/50 rounded-xl px-4 py-3 text-sm outline-none focus:border-white/80 focus:bg-white/25 transition"
+                className={inputClass}
+                required
               />
             </div>
           </div>
@@ -94,7 +149,10 @@ function Register() {
                 type="date"
                 id="dateOfBirth"
                 name="dateOfBirth"
-                className="w-full bg-white/20 border border-white/40 text-white rounded-xl px-4 py-3 text-sm outline-none focus:border-white/80 focus:bg-white/25 transition [scheme-dark]"
+                value={user.dateOfBirth}
+                onChange={handleChange}
+                className={`${inputClass} [scheme-dark]`}
+                required
               />
             </div>
 
@@ -105,9 +163,12 @@ function Register() {
               <select
                 id="gender"
                 name="gender"
-                className="w-full bg-white/20 border border-white/40 text-white rounded-xl px-4 py-3 text-sm outline-none focus:border-white/80 focus:bg-white/25 transition appearance-none cursor-pointer [scheme-dark]"
+                value={user.gender}
+                onChange={handleChange}
+                className={`${inputClass} appearance-none cursor-pointer [scheme-dark]`}
+                required
               >
-                <option value="" disabled selected className="text-gray-700">Select gender</option>
+                <option value="" disabled className="text-gray-700">Select gender</option>
                 <option value="male" className="text-gray-700">Male</option>
                 <option value="female" className="text-gray-700">Female</option>
               </select>
@@ -117,9 +178,10 @@ function Register() {
           {/* Submit */}
           <button
             type="submit"
-            className="w-full mt-2 bg-white text-blue-600 font-semibold py-3 rounded-xl text-sm tracking-wide shadow-lg hover:bg-blue-50 active:scale-95 transition-all duration-150"
+            disabled={loading}
+            className="w-full mt-2 bg-white text-blue-600 font-semibold py-3 rounded-xl text-sm tracking-wide shadow-lg hover:bg-blue-50 active:scale-95 transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Create Account
+            {loading ? 'Creating account…' : 'Create Account'}
           </button>
 
         </form>
