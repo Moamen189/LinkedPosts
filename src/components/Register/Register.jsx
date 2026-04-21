@@ -1,38 +1,31 @@
 import React, { useState } from 'react'
+import { useForm } from 'react-hook-form'
 import axios from 'axios'
 
 function Register() {
-  const [user, setUser] = useState({
-    name: '',
-    email: '',
-    password: '',
-    rePassword: '',
-    dateOfBirth: '',
-    gender: ''
-  })
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [apiError, setApiError] = useState(null)
   const [success, setSuccess] = useState(null)
- // e => setUser({ ...user, [e.target.name]: e.target.value })
- // e => Event Info name and value 
-  function handleChange(e) {
-    setUser({ ...user, [e.target.name]: e.target.value })
-  }
 
-  async function handleRegister(e) {
-    e.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm()
+
+  async function onSubmit(data) {
     setLoading(true)
-    setError(null)
+    setApiError(null)
     setSuccess(null)
 
     try {
-      const { data } = await axios.post(
+      const response = await axios.post(
         'https://linked-posts.routemisr.com/users/signup',
-        user
+        data
       )
-      setSuccess(data.message || 'Account created successfully!')
+      setSuccess(response.data.message || 'Account created successfully!')
     } catch (err) {
-      setError(err.response?.data?.message || 'Something went wrong. Please try again.')
+      setApiError(err.response?.data?.message || 'Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -40,6 +33,8 @@ function Register() {
 
   const inputClass =
     'w-full bg-white/20 border border-white/40 text-white placeholder:text-white/50 rounded-xl px-4 py-3 text-sm outline-none focus:border-white/80 focus:bg-white/25 transition'
+
+  const errorClass = 'text-red-300 text-xs mt-1'
 
   return (
     <div className="flex items-center justify-center min-h-screen px-4">
@@ -57,9 +52,9 @@ function Register() {
         </div>
 
         {/* API Feedback */}
-        {error && (
+        {apiError && (
           <div className="mb-5 bg-red-500/20 border border-red-400/50 text-red-100 text-sm rounded-xl px-4 py-3">
-            {error}
+            {apiError}
           </div>
         )}
         {success && (
@@ -68,7 +63,7 @@ function Register() {
           </div>
         )}
 
-        <form onSubmit={handleRegister} className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
           {/* Name */}
           <div className="flex flex-col gap-1">
@@ -78,13 +73,11 @@ function Register() {
             <input
               type="text"
               id="name"
-              name="name"
-              value={user.name}
-              onChange={handleChange}
               placeholder="Enter your full name"
               className={inputClass}
-              required
+              {...register('name', { required: 'Name is required' })}
             />
+            {errors.name && <p className={errorClass}>{errors.name.message}</p>}
           </div>
 
           {/* Email */}
@@ -95,13 +88,14 @@ function Register() {
             <input
               type="email"
               id="email"
-              name="email"
-              value={user.email}
-              onChange={handleChange}
               placeholder="Enter your email"
               className={inputClass}
-              required
+              {...register('email', {
+                required: 'Email is required',
+                pattern: { value: /^\S+@\S+\.\S+$/, message: 'Invalid email address' },
+              })}
             />
+            {errors.email && <p className={errorClass}>{errors.email.message}</p>}
           </div>
 
           {/* Password row */}
@@ -113,13 +107,14 @@ function Register() {
               <input
                 type="password"
                 id="password"
-                name="password"
-                value={user.password}
-                onChange={handleChange}
                 placeholder="••••••••"
                 className={inputClass}
-                required
+                {...register('password', {
+                  required: 'Password is required',
+                  minLength: { value: 6, message: 'At least 6 characters' },
+                })}
               />
+              {errors.password && <p className={errorClass}>{errors.password.message}</p>}
             </div>
 
             <div className="flex flex-col gap-1">
@@ -129,13 +124,11 @@ function Register() {
               <input
                 type="password"
                 id="rePassword"
-                name="rePassword"
-                value={user.rePassword}
-                onChange={handleChange}
                 placeholder="••••••••"
                 className={inputClass}
-                required
+                {...register('rePassword', { required: 'Please confirm your password' })}
               />
+              {errors.rePassword && <p className={errorClass}>{errors.rePassword.message}</p>}
             </div>
           </div>
 
@@ -148,12 +141,10 @@ function Register() {
               <input
                 type="date"
                 id="dateOfBirth"
-                name="dateOfBirth"
-                value={user.dateOfBirth}
-                onChange={handleChange}
-                className={`${inputClass} [scheme-dark]`}
-                required
+                className={`${inputClass} [color-scheme-dark]`}
+                {...register('dateOfBirth', { required: 'Date of birth is required' })}
               />
+              {errors.dateOfBirth && <p className={errorClass}>{errors.dateOfBirth.message}</p>}
             </div>
 
             <div className="flex flex-col gap-1">
@@ -162,16 +153,14 @@ function Register() {
               </label>
               <select
                 id="gender"
-                name="gender"
-                value={user.gender}
-                onChange={handleChange}
-                className={`${inputClass} appearance-none cursor-pointer [scheme-dark]`}
-                required
+                className={`${inputClass} appearance-none cursor-pointer [color-scheme-dark]`}
+                {...register('gender', { required: 'Gender is required' })}
               >
                 <option value="" disabled className="text-gray-700">Select gender</option>
                 <option value="male" className="text-gray-700">Male</option>
                 <option value="female" className="text-gray-700">Female</option>
               </select>
+              {errors.gender && <p className={errorClass}>{errors.gender.message}</p>}
             </div>
           </div>
 
