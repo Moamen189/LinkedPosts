@@ -1,7 +1,17 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import axios from 'axios'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 
+const registerSchema = z.object({
+  name: z.string().min(3, 'Name must be at least 3 characters long'),
+  email: z.email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters long'),
+  rePassword: z.string().min(6, 'Password must be at least 6 characters long'),
+  dateOfBirth: z.string().min(10, 'Date of birth is required'),
+  gender: z.string().min(1, 'Gender is required'),
+})
 function Register() {
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState(null)
@@ -142,7 +152,10 @@ function Register() {
                 type="date"
                 id="dateOfBirth"
                 className={`${inputClass} [color-scheme-dark]`}
-                {...register('dateOfBirth', { required: 'Date of birth is required' })}
+                {...register('dateOfBirth', { required: 'Date of birth is required' , validate: (value) => {
+                  const age = new Date().getFullYear() - new Date(value).getFullYear()
+                  return age >= 18 || 'You must be at least 18 years old'
+                } })}
               />
               {errors.dateOfBirth && <p className={errorClass}>{errors.dateOfBirth.message}</p>}
             </div>
