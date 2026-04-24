@@ -9,8 +9,20 @@ const registerSchema = z.object({
   email: z.email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters long'),
   rePassword: z.string().min(6, 'Password must be at least 6 characters long'),
-  dateOfBirth: z.string().min(10, 'Date of birth is required'),
+  dateOfBirth: z.string().min(1, 'Date of birth is required').refine((value) => {
+    const today = new Date()
+    const birth = new Date(value)
+    let age = today.getFullYear() - birth.getFullYear()
+    const monthDiff = today.getMonth() - birth.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--
+    }
+    return age >= 18
+  }, 'You must be at least 18 years old'),
   gender: z.string().min(1, 'Gender is required'),
+}).refine((data) => data.password === data.rePassword, {
+  message: 'Passwords do not match',
+  path: ['rePassword'],
 })
 function Register() {
   const [loading, setLoading] = useState(false)
@@ -21,13 +33,19 @@ function Register() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm()
+  } = useForm({
+    //Zod Resolver for Validation
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      gender: '',
+    },
+  })
 
   async function onSubmit(data) {
     setLoading(true)
     setApiError(null)
     setSuccess(null)
-
+    // OR then && Catch
     try {
       const response = await axios.post(
         'https://linked-posts.routemisr.com/users/signup',
@@ -83,9 +101,9 @@ function Register() {
             <input
               type="text"
               id="name"
-              placeholder="Enter your full name"
+              placeholder="Enter your full name (Min 3 Characters)"
               className={inputClass}
-              {...register('name', { required: 'Name is required' })}
+              {...register('name')}
             />
             {errors.name && <p className={errorClass}>{errors.name.message}</p>}
           </div>
