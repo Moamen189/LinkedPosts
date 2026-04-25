@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import axios from 'axios'
-import { z } from 'zod'
+import { set, z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useNavigate } from 'react-router-dom'
 
 const registerSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters long'),
@@ -40,7 +41,8 @@ function Register() {
       gender: '',
     },
   })
-
+  
+  const navigate = useNavigate()
   async function onSubmit(data) {
     setLoading(true)
     setApiError(null)
@@ -51,7 +53,11 @@ function Register() {
         'https://linked-posts.routemisr.com/users/signup',
         data
       )
+
       setSuccess(response.data.message || 'Account created successfully!')
+      setTimeout( () =>{
+        navigate("/login")
+      } , 2000)
     } catch (err) {
       setApiError(err.response?.data?.message || 'Something went wrong. Please try again.')
     } finally {
